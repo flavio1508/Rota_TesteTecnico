@@ -12,12 +12,12 @@ import { RouteModel } from '../models/route.model';
 import { RouteEntity } from '../entities/route.entity';
 
 import { CreateRouteInput } from '../dto/create-route.input';
-
+import { SaveRouteInput } from '../dto/save-route.input';
 @Resolver(() => RouteModel)
 export class RouteResolver {
   constructor(
     private readonly routeService: RouteService,
-  ) {}
+  ) { }
 
   @Mutation(() => RouteModel, {
     name: 'calculateRoute',
@@ -34,7 +34,7 @@ export class RouteResolver {
   })
   async saveRoute(
     @Args('input')
-    input: CreateRouteInput,
+    input: SaveRouteInput,
   ) {
     return this.routeService.saveRoute(input);
   }
@@ -55,7 +55,12 @@ export class RouteResolver {
   ) {
     return this.routeService.findOne(id);
   }
-
+  @Query(() => [RouteModel])
+  findRoutesByPlate(
+    @Args('plate') plate: string,
+  ) {
+    return this.routeService.findByPlate(plate);
+  }
   @Mutation(() => Boolean, {
     name: 'removeRoute',
   })

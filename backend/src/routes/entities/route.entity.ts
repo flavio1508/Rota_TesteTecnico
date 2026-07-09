@@ -14,12 +14,22 @@ import {
 } from '@nestjs/graphql';
 
 import { CoordinateModel } from '../models/coordinate.model';
+import { ManyToOne, JoinColumn } from 'typeorm';
+import { VehicleEntity } from './vehicle.entity';
 @ObjectType()
 @Entity('routes')
 export class RouteEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @ManyToOne(() => VehicleEntity, (vehicle) => vehicle.routes, {
+  eager: true,
+})
+@JoinColumn({
+  name: 'vehicle_id',
+})
+vehicle!: VehicleEntity;
 
   @Field()
   @Column()

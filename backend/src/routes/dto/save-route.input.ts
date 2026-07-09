@@ -1,11 +1,8 @@
-import { Field, Float, InputType } from '@nestjs/graphql';
+import { Field, InputType } from '@nestjs/graphql';
 import {
-  IsArray,
   IsNotEmpty,
-  IsNumber,
   IsString,
   MaxLength,
-  Min,
 } from 'class-validator';
 
 @InputType()
@@ -34,42 +31,39 @@ export class SaveRouteInput {
   @MaxLength(255)
   destination!: string;
 
-  @Field(() => Float, {
-    description: 'Distância da rota em quilômetros',
+  @Field(() => String, {
+    description: 'Placa do veículo',
   })
-  @IsNumber(
-    {},
-    {
-      message: 'A distância deve ser um número.',
-    },
-  )
-  @Min(0)
-  distance!: number;
-
-  @Field(() => Float, {
-    description: 'Tempo estimado da rota em minutos',
+  @IsString({
+    message: 'A placa deve ser um texto.',
   })
-  @IsNumber(
-    {},
-    {
-      message: 'A duração deve ser um número.',
-    },
-  )
-  @Min(0)
-  duration!: number;
+  @IsNotEmpty({
+    message: 'A placa é obrigatória.',
+  })
+  @MaxLength(20)
+  plate!: string;
 
   @Field(() => String, {
-    description: 'Polyline codificada retornada pela Google',
+    description: 'Marca do veículo',
   })
-  @IsString()
-  @IsNotEmpty()
-  encodedPolyline!: string;
+  @IsString({
+    message: 'A marca deve ser um texto.',
+  })
+  @IsNotEmpty({
+    message: 'A marca é obrigatória.',
+  })
+  @MaxLength(100)
+  brand!: string;
 
-  @Field(() => [String], {
-    description: 'Lista de coordenadas no formato LINESTRING',
+  @Field(() => String, {
+    description: 'Modelo do veículo',
   })
-  @IsArray({
-    message: 'O caminho deve ser um array.',
+  @IsString({
+    message: 'O modelo deve ser um texto.',
   })
-  path!: string[];
+  @IsNotEmpty({
+    message: 'O modelo é obrigatório.',
+  })
+  @MaxLength(100)
+  model!: string;
 }

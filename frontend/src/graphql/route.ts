@@ -8,6 +8,7 @@ export const CALCULATE_ROUTE = gql`
       distance
       duration
       encodedPolyline
+
       coordinates {
         latitude
         longitude
@@ -17,7 +18,7 @@ export const CALCULATE_ROUTE = gql`
 `;
 
 export const SAVE_ROUTE = gql`
-  mutation saveRoute($input: CreateRouteInput!) {
+  mutation saveRoute($input: SaveRouteInput!) {
     saveRoute(input: $input) {
       id
       origin
@@ -25,6 +26,13 @@ export const SAVE_ROUTE = gql`
       distance
       duration
       createdAt
+
+      vehicle {
+        id
+        plate
+        brand
+        model
+      }
     }
   }
 `;
@@ -38,6 +46,33 @@ export const GET_ROUTES = gql`
       distance
       duration
       createdAt
+
+      vehicle {
+        id
+        plate
+        brand
+        model
+      }
+    }
+  }
+`;
+
+export const FIND_ROUTES_BY_PLATE = gql`
+  query findRoutesByPlate($plate: String!) {
+    findRoutesByPlate(plate: $plate) {
+      id
+      origin
+      destination
+      distance
+      duration
+      createdAt
+
+      vehicle {
+        id
+        plate
+        brand
+        model
+      }
     }
   }
 `;

@@ -8,16 +8,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { RouteEntity } from '../entities/route.entity';
+import { VehicleEntity } from '../entities/vehicle.entity';
 
 import { GoogleService } from './google.service';
 
 import { CreateRouteInput } from '../dto/create-route.input';
+import { SaveRouteInput } from '../dto/save-route.input';
 
 @Injectable()
 export class RouteService {
   constructor(
     @InjectRepository(RouteEntity)
     private readonly repository: Repository<RouteEntity>,
+
+    @InjectRepository(VehicleEntity)
+    private readonly vehicleRepository: Repository<VehicleEntity>,
 
     private readonly googleService: GoogleService,
   ) {}
@@ -29,12 +34,27 @@ export class RouteService {
     );
   }
 
-  async saveRoute(input: CreateRouteInput) {
-    const route =
-      await this.googleService.calculateRoute(
-        input.origin,
-        input.destination,
-      );
+  async saveRoute(input: SaveRouteInput) {
+    const route = await this.googleService.calculateRoute(
+      input.origin,
+      input.destination,
+    );
+
+    let vehicle = await this.vehicleRepository.findOne({
+      where: {
+        plate: input.plate,
+      },
+    });
+
+    if (!vehicle) {
+      vehicle = this.vehicleRepository.create({
+        plate: input.plate,
+        brand: input.brand,
+        model: input.model,
+      });
+
+      vehicle = await this.vehicleRepository.save(vehicle);
+    }
 
     const entity = this.repository.create({
       origin: route.origin,
@@ -44,6 +64,7 @@ export class RouteService {
       encodedPolyline: route.encodedPolyline,
       coordinates: route.coordinates,
       path: this.buildLineString(route.coordinates),
+      vehicle,
     });
 
     return await this.repository.save(entity);
@@ -51,6 +72,9 @@ export class RouteService {
 
   async findAll(): Promise<RouteEntity[]> {
     return this.repository.find({
+      relations: {
+        vehicle: true,
+      },
       order: {
         createdAt: 'DESC',
       },
@@ -59,7 +83,12 @@ export class RouteService {
 
   async findOne(id: string): Promise<RouteEntity> {
     const route = await this.repository.findOne({
-      where: { id },
+      where: {
+        id,
+      },
+      relations: {
+        vehicle: true,
+      },
     });
 
     if (!route) {
@@ -69,6 +98,28 @@ export class RouteService {
     }
 
     return route;
+  }
+
+  async findByPlate(
+    plate: string,
+  ): Promise<RouteEntity[]> {
+    return this.repository
+      .createQueryBuilder('route')
+      .leftJoinAndSelect(
+        'route.vehicle',
+        'vehicle',
+      )
+      .where(
+        'LOWER(vehicle.plate) LIKE LOWER(:plate)',
+        {
+          plate: `%${plate}%`,
+        },
+      )
+      .orderBy(
+        'route.createdAt',
+        'DESC',
+      )
+      .getMany();
   }
 
   async remove(id: string): Promise<boolean> {

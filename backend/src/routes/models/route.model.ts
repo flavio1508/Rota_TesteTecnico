@@ -23,6 +23,15 @@ export class RouteModel {
   origin!: string;
 
   @Field()
+plate!: string;
+
+@Field()
+brand!: string;
+
+@Field()
+model!: string;
+
+  @Field()
   destination!: string;
 
   @Field(() => Float, {
